@@ -1,0 +1,26 @@
+{
+  "name": "peso-kopal-server",
+  "version": "1.0.0",
+  "description": "Backend server for Peso Kopal Superadmin Dashboard",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "nodemon index.js",
+    "dev": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.6.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
