@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const auth = require("../middleware/auth");
+const {
+  getSuperadminCredentials,
+  updateSuperadminCredentials,
+} = require("../controller/settingsController");
 
-// All routes are protected by authentication
-router.use(auth);
+router.get("/credentials", getSuperadminCredentials);
+router.put("/credentials", updateSuperadminCredentials);
 
 module.exports = router;

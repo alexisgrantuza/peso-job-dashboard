@@ -1,115 +1,122 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Box,
+  Button,
+  TextField,
   Typography,
   Paper,
-  TextField,
-  Button,
-  Grid,
-  Switch,
-  FormControlLabel,
+  Box,
 } from "@mui/material";
-import { useForm } from "react-hook-form";
 
-function Settings() {
-  const [settings, setSettings] = useState({
-    systemName: "Peso Kopal",
-    emailNotifications: true,
-    maintenanceMode: false,
-  });
-
-  const { register, handleSubmit, setValue } = useForm({
-    defaultValues: settings,
-  });
+const Settings = () => {
+  const [superadmin, setSuperadmin] = useState({ name: "", email: "", role: "" });
+  const [editing, setEditing] = useState(false);
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
 
   useEffect(() => {
-    // Fetch current settings
-    const fetchSettings = async () => {
+    const fetchSuperadmin = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/settings");
-        const data = await response.json();
-        setSettings(data);
-        // Update form values
-        Object.keys(data).forEach((key) => {
-          setValue(key, data[key]);
+        const res = await fetch("http://localhost:5000/api/settings/credentials", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
-      } catch (error) {
-        console.error("Error fetching settings:", error);
+        const data = await res.json();
+        setSuperadmin(data);
+        setFormData({ name: data.name, email: data.email, password: "" });
+      } catch (err) {
+        console.error("Fetch error:", err);
       }
     };
 
-    fetchSettings();
-  }, [setValue]);
+    fetchSuperadmin();
+  }, []);
 
-  const onSubmit = async (data) => {
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSave = async () => {
+    // Prepare the data to send to the backend
+    let dataToSend = {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password.trim() === "" ? null : formData.password, // Send null for password if blank
+    };
+
     try {
-      const response = await fetch("http://localhost:5000/api/settings", {
+      const res = await fetch("http://localhost:5000/api/settings/credentials", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(dataToSend),
       });
-      if (response.ok) {
-        setSettings(data);
+
+      const data = await res.json();
+      if (res.ok) {
+        setSuperadmin(prev => ({
+          ...prev,
+          name: formData.name,
+          email: formData.email,
+        }));
+        setEditing(false);
+      } else {
+        alert(data.message || "Update failed");
       }
-    } catch (error) {
-      console.error("Error updating settings:", error);
+    } catch (err) {
+      console.error("Update error:", err);
     }
   };
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <Typography variant="h4" gutterBottom>
-        Settings
-      </Typography>
-      <Paper sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="System Name"
-                {...register("systemName")}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    {...register("emailNotifications")}
-                    defaultChecked={settings.emailNotifications}
-                  />
-                }
-                label="Enable Email Notifications"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    {...register("maintenanceMode")}
-                    defaultChecked={settings.maintenanceMode}
-                  />
-                }
-                label="Maintenance Mode"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                size="large"
-              >
-                Save Settings
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
+    <Box p={3}>
+      <Typography variant="h5" mb={2}>Superadmin Settings</Typography>
+      <Paper elevation={3} style={{ padding: "20px", maxWidth: "500px" }}>
+        {!editing ? (
+          <>
+            <Typography><strong>Name:</strong> {superadmin.name}</Typography>
+            <Typography><strong>Email:</strong> {superadmin.email}</Typography>
+            <Typography><strong>Role:</strong> superadmin</Typography>
+            <Button variant="contained" onClick={() => setEditing(true)} style={{ marginTop: "10px" }}>Edit</Button>
+          </>
+        ) : (
+          <>
+            <TextField
+              label="Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              type="password"
+              fullWidth
+              margin="normal"
+            />
+            <Typography mt={2}><strong>Role:</strong> superadmin</Typography>
+            <Box mt={2}>
+              <Button variant="contained" color="primary" onClick={handleSave}>Save</Button>
+              <Button onClick={() => setEditing(false)} style={{ marginLeft: "10px" }}>Cancel</Button>
+            </Box>
+          </>
+        )}
       </Paper>
     </Box>
   );
-}
+};
 
 export default Settings;

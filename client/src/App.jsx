@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import ManageAdmins from "./pages/ManageAdmins";
 import ManageJobs from "./pages/ManageJobs";
 import ManageApplicants from "./pages/ManageApplicants";
+import Settings from "./pages/Settings"; // Import your Settings component
 
 // Create a theme instance
 const theme = createTheme({
@@ -54,9 +55,12 @@ function App() {
                 </ProtectedRoute>
               }
             >
+              <Route path="dashboard" element={<Dashboard />} />
               <Route path="admins" element={<ManageAdmins />} />
               <Route path="jobs" element={<ManageJobs />} />
               <Route path="applicants" element={<ManageApplicants />} />
+              {/* Add the settings route */}
+              <Route path="settings" element={<Settings />} />
             </Route>
           </Routes>
         </BrowserRouter>

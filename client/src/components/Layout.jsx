@@ -26,6 +26,7 @@ import {
   Logout as LogoutIcon,
 } from "@mui/icons-material";
 import { jwtDecode } from "jwt-decode";
+import logo from "../assets/logo.png";  // Updated import path
 
 const drawerWidth = 240;
 
@@ -64,7 +65,7 @@ function Layout() {
   };
 
   const superadminMenuItems = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "/" },
+    { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
     { text: "Manage Admins", icon: <PeopleIcon />, path: "/admins" },
     { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
   ];
@@ -86,6 +87,12 @@ function Layout() {
   const drawer = (
     <div style={{ backgroundColor: "#C41E3A", height: "100%", color: "white" }}>
       <Toolbar />
+      <Box sx={{ display: "flex", alignItems: "center", padding: "16px" }}>
+        <img src={logo} alt="JUANployment Logo" style={{ height: "40px", marginRight: "8px" }} />
+        <Typography variant="h6" sx={{ color: "white", fontWeight: "bold" }}>
+          JUANployment
+        </Typography>
+      </Box>
       <List>
         {menuItems.map((item) => (
           <ListItem button key={item.text} onClick={() => navigate(item.path)}>
