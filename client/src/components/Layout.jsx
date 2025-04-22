@@ -31,7 +31,7 @@ const drawerWidth = 240;
 
 function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [userRole, setUserRole] = useState(null);
+  const [userRole, setUserRole] = useState("");
   const [userName, setUserName] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
@@ -40,12 +40,12 @@ function Layout() {
     const token = localStorage.getItem("token");
     if (token) {
       const decoded = jwtDecode(token);
-      setUserRole(decoded.role);
+      setUserRole(decoded.role || "user");
       setUserName(decoded.name || "User");
     } else {
       navigate("/login");
     }
-  }, []);
+  }, [navigate]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

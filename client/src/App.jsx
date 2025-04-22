@@ -13,7 +13,7 @@ import SettingsSuperAdmin from "./pages/Settings_SuperAdmin";
 import SettingsAdmin from "./pages/Settings_Admin";
 
 function App() {
-  const [userRole, setUserRole] = useState(null);
+  const [userRole, setUserRole] = useState(null); // default to null
   const location = useLocation();
 
   useEffect(() => {
@@ -25,14 +25,13 @@ function App() {
   console.log("Current path:", location.pathname); // Console log here
   console.log("Current userRole:", userRole); // Console log here
 
-  // If on the login page, render login without layout
   if (location.pathname === "/") {
     return <Login />;
   }
 
-  // Only show layout if userRole is present
-  if (!userRole) {
-    return null; // or a loading spinner
+  // Handle the case where the userRole is not yet loaded (or still undefined)
+  if (userRole === null) {
+    return <div>Loading...</div>; // Or a spinner
   }
 
   return (

@@ -1,14 +1,10 @@
-const db = require("../config/db");
+const connectDB = require("../config/database");
+const db = connectDB();
 
 const UserModel = {
-  getAllAdmins: (callback) => {
-    const sql = "SELECT id, name, email FROM users WHERE role = 'admin'";
+  getAllUsers: (callback) => {
+    const sql = "SELECT id, name, email, role FROM users";
     db.query(sql, callback);
-  },
-
-  getUserByEmail: (email, callback) => {
-    const sql = "SELECT * FROM users WHERE email = ?";
-    db.query(sql, [email], callback);
   },
 
   getUserById: (id, callback) => {
@@ -16,20 +12,18 @@ const UserModel = {
     db.query(sql, [id], callback);
   },
 
-  createAdmin: ({ name, email, passwordHash }, callback) => {
-    const sql =
-      "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'admin')";
-    db.query(sql, [name, email, passwordHash], callback);
+  createUser: ({ name, email, passwordHash, role = "user" }, callback) => {
+    const sql = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)";
+    db.query(sql, [name, email, passwordHash, role], callback);
   },
 
-  updateAdmin: (id, { name, email }, callback) => {
-    const sql =
-      'UPDATE users SET name = ?, email = ? WHERE id = ? AND role = "admin"';
+  updateUser: (id, { name, email }, callback) => {
+    const sql = "UPDATE users SET name = ?, email = ? WHERE id = ?";
     db.query(sql, [name, email, id], callback);
   },
 
-  deleteAdmin: (id, callback) => {
-    const sql = 'DELETE FROM users WHERE id = ? AND role = "admin"';
+  deleteUser: (id, callback) => {
+    const sql = "DELETE FROM users WHERE id = ?";
     db.query(sql, [id], callback);
   },
 };

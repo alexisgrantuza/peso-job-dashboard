@@ -4,6 +4,7 @@ const cors = require("cors");
 const mysql = require("mysql");
 const path = require("path");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");  // Import bcrypt for password hashing and comparison
 
 // Route imports
 const authRoutes = require("./routes/auth");
@@ -65,8 +66,8 @@ app.post("/api/auth/login", (req, res) => {
 
       const user = results[0];
 
-      // Compare password (use bcrypt in a real app)
-      const validPassword = password === user.password; // Replace with bcrypt compare
+      // Compare password (use bcrypt to compare hashed password)
+      const validPassword = await bcrypt.compare(password, user.password); 
 
       if (!validPassword) {
         return res.status(400).json({ message: "Invalid credentials" });
@@ -118,5 +119,5 @@ app.use((err, req, res, next) => {
 // Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
