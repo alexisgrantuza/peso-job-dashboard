@@ -1,31 +1,61 @@
-const db = require("../config/db");
+// models/jobModel.js
+const { Sequelize, DataTypes } = require('sequelize');
 
-const JobModel = {
-  getAllJobs: (callback) => {
-    const sql = "SELECT * FROM jobs";
-    db.query(sql, callback);
+// Connect to your 'peso-database' MySQL database
+const sequelize = new Sequelize('mysql://username:password@localhost:3306/peso-database', {
+  dialect: 'mysql',
+  logging: false, // Disable logging if not needed
+});
+
+const Job = sequelize.define('tbl_jobs', { // Define the 'tbl_jobs' table
+  job_id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
   },
-
-  getJobById: (id, callback) => {
-    const sql = "SELECT * FROM jobs WHERE id = ?";
-    db.query(sql, [id], callback);
+  employer_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
   },
-
-  createJob: ({ title, description, postedBy }, callback) => {
-    const sql =
-      'INSERT INTO jobs (title, description, status, posted_by_admin_id) VALUES (?, ?, "pending", ?)';
-    db.query(sql, [title, description, postedBy], callback);
+  location: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
-
-  updateJobStatus: (id, status, callback) => {
-    const sql = "UPDATE jobs SET status = ? WHERE id = ?";
-    db.query(sql, [status, id], callback);
+  job_type: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
-
-  deleteJob: (id, callback) => {
-    const sql = "DELETE FROM jobs WHERE id = ?";
-    db.query(sql, [id], callback);
+  salary: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
   },
-};
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  required_skills: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  education_level: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  business_name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  industry: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  status: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+}, {
+  tableName: 'tbl_jobs',  // Specify the exact table name in the database
+  timestamps: false,  // Assuming you don't have createdAt or updatedAt columns in your table
+});
 
-module.exports = JobModel;
+module.exports = { Job, sequelize };

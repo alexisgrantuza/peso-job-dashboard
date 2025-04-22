@@ -32,8 +32,23 @@ function Login() {
         "http://localhost:5000/api/auth/login",
         formData
       );
-      localStorage.setItem("token", response.data.token);
-      navigate("/");
+
+      // Log the response to debug
+      console.log(response.data);
+
+      // Store the token and role
+      const { token, role } = response.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("userRole", role);
+
+      // Redirect based on role
+      if (role === "superadmin") {
+        navigate("/superadminDashboard");
+      } else if (role === "admin") {
+        navigate("/adminDashboard");
+      } else {
+        setError("Invalid role");
+      }
     } catch (error) {
       setError(error.response?.data?.message || "An error occurred");
     }

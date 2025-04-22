@@ -1,154 +1,134 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
   Paper,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   Alert,
-  Chip,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  TextField,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { useForm } from "react-hook-form";
 import axios from "axios";
+import { useTheme } from "@mui/material/styles";
+import * as XLSX from "xlsx";
 
-function ManageApplicants() {
+const ManageApplicants = () => {
+  const theme = useTheme();
   const [applicants, setApplicants] = useState([]);
-  const [open, setOpen] = useState(false);
+  const [filteredApplicants, setFilteredApplicants] = useState([]);
   const [error, setError] = useState("");
-  const { register, handleSubmit, reset } = useForm();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   useEffect(() => {
     fetchApplicants();
   }, []);
 
+  useEffect(() => {
+    let data = [...applicants];
+    if (searchTerm) {
+      data = data.filter(
+        (item) =>
+          item.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    if (statusFilter) {
+      data = data.filter((item) => item.status.toLowerCase() === statusFilter);
+    }
+    setFilteredApplicants(data);
+  }, [searchTerm, statusFilter, applicants]);
+
   const fetchApplicants = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/applicants", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      setApplicants(response.data);
-    } catch (error) {
-      setError("Failed to fetch applicants");
-    }
-  };
+      const token = localStorage.getItem("token"); // Ensure token is saved in localStorage after login
 
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    reset();
-    setError("");
-  };
-
-  const onSubmit = async (data) => {
-    try {
-      await axios.post("http://localhost:5000/api/applicants", data, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      fetchApplicants();
-      handleClose();
-    } catch (error) {
-      setError(error.response?.data?.message || "Failed to create applicant");
-    }
-  };
-
-  const handleStatusChange = async (id, newStatus) => {
-    try {
-      await axios.put(
-        `http://localhost:5000/api/applicants/${id}/status`,
-        { status: newStatus },
+      const response = await axios.get(
+        "http://localhost:5000/api/applicants",
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`, // Attach token to the Authorization header
           },
         }
       );
-      fetchApplicants();
+      const applicantsWithId = response.data.map((app, index) => ({
+        ...app,
+        id: app.application_id,
+      }));
+      setApplicants(applicantsWithId);
     } catch (error) {
-      setError("Failed to update applicant status");
+      setError("Failed to fetch applicants.");
     }
   };
 
+  const handleExport = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredApplicants);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Applicants");
+    XLSX.writeFile(workbook, "Applicants.xlsx");
+  };
+
   const columns = [
-    { field: "id", headerName: "ID", width: 70 },
-    { field: "name", headerName: "Name", width: 200 },
-    { field: "email", headerName: "Email", width: 200 },
-    { field: "phone", headerName: "Phone", width: 150 },
+    { field: "application_id", headerName: "Application ID", width: 120 },
+    { field: "first_name", headerName: "First Name", width: 150 },
+    { field: "last_name", headerName: "Last Name", width: 150 },
+    { field: "email", headerName: "Email", width: 250 },
+    { field: "job_title", headerName: "Job Title", width: 200 },
     {
       field: "status",
       headerName: "Status",
-      width: 150,
-      renderCell: (params) => (
-        <Chip
-          label={params.value}
-          color={
-            params.value === "approved"
-              ? "success"
-              : params.value === "rejected"
-              ? "error"
-              : "warning"
-          }
-        />
-      ),
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 300,
-      renderCell: (params) => (
-        <Box>
-          <Button
-            variant="outlined"
-            color="success"
-            size="small"
-            onClick={() => handleStatusChange(params.row.id, "approved")}
-            disabled={params.row.status === "approved"}
+      width: 140,
+      renderCell: (params) => {
+        const status = params.value.toLowerCase(); // Make sure to convert to lowercase
+        let color, bgColor;
+        switch (status) {
+          case "pending":
+            color = theme.palette.warning.main;
+            bgColor = theme.palette.warning.light;
+            break;
+          case "approved":
+            color = theme.palette.success.main;
+            bgColor = theme.palette.success.light;
+            break;
+          case "declined":
+            color = theme.palette.error.main;
+            bgColor = theme.palette.error.light;
+            break;
+          default:
+            color = theme.palette.grey[800];
+            bgColor = theme.palette.grey[300];
+        }
+        return (
+          <Box
+            sx={{
+              px: 1,
+              py: 0.1,
+              borderRadius: "12px",
+              fontWeight: 500,
+              fontSize: "0.8rem",
+              bgcolor: bgColor,
+              color: "#fff",
+              textTransform: "capitalize", // Capitalize the text
+              width: "fit-content",
+            }}
           >
-            Approve
-          </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            size="small"
-            onClick={() => handleStatusChange(params.row.id, "rejected")}
-            disabled={params.row.status === "rejected"}
-            sx={{ ml: 1 }}
-          >
-            Reject
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            size="small"
-            onClick={() => window.open(params.row.resume_url, "_blank")}
-            sx={{ ml: 1 }}
-          >
-            View Resume
-          </Button>
-        </Box>
-      ),
+            {status}
+          </Box>
+        );
+      },
     },
   ];
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-        <Typography variant="h4">Manage Applicants</Typography>
-        <Button variant="contained" color="primary" onClick={handleOpen}>
-          Add Applicant
-        </Button>
-      </Box>
+      <Typography variant="h4" sx={{ mb: 2, fontWeight: "bold" }}>
+         Applicants Record
+      </Typography>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -156,56 +136,41 @@ function ManageApplicants() {
         </Alert>
       )}
 
-      <Paper sx={{ height: 400, width: "100%" }}>
+      <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        <TextField
+          label="Search by Name or Email"
+          variant="outlined"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <FormControl sx={{ minWidth: 150 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            label="Status"
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="pending">Pending</MenuItem>
+            <MenuItem value="approved">Approved</MenuItem>
+            <MenuItem value="declined">Declined</MenuItem>
+          </Select>
+        </FormControl>
+        <Button variant="contained" onClick={handleExport}>
+          Export to Excel
+        </Button>
+      </Box>
+
+      <Paper sx={{ height: 500, width: "100%" }}>
         <DataGrid
-          rows={applicants}
+          rows={filteredApplicants}
           columns={columns}
           pageSize={5}
           rowsPerPageOptions={[5]}
         />
       </Paper>
-
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Add New Applicant</DialogTitle>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Name"
-              fullWidth
-              {...register("name", { required: true })}
-            />
-            <TextField
-              margin="dense"
-              label="Email"
-              type="email"
-              fullWidth
-              {...register("email", { required: true })}
-            />
-            <TextField
-              margin="dense"
-              label="Phone"
-              fullWidth
-              {...register("phone", { required: true })}
-            />
-            <TextField
-              margin="dense"
-              label="Resume URL"
-              fullWidth
-              {...register("resume_url", { required: true })}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button type="submit" variant="contained">
-              Add Applicant
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
     </Box>
   );
-}
+};
 
 export default ManageApplicants;

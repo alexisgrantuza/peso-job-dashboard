@@ -12,7 +12,6 @@ import {
   ListItemText,
   Toolbar,
   Typography,
-  Avatar,
   Menu,
   MenuItem,
 } from "@mui/material";
@@ -26,7 +25,7 @@ import {
   Logout as LogoutIcon,
 } from "@mui/icons-material";
 import { jwtDecode } from "jwt-decode";
-import logo from "../assets/logo.png";  // Updated import path
+import logo from "../assets/logo.png"; // Updated import path
 
 const drawerWidth = 240;
 
@@ -43,6 +42,8 @@ function Layout() {
       const decoded = jwtDecode(token);
       setUserRole(decoded.role);
       setUserName(decoded.name || "User");
+    } else {
+      navigate("/login");
     }
   }, []);
 
@@ -65,32 +66,33 @@ function Layout() {
   };
 
   const superadminMenuItems = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
+    { text: "Dashboard", icon: <DashboardIcon />, path: "/superadminDashboard" },
     { text: "Manage Admins", icon: <PeopleIcon />, path: "/admins" },
-    { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
+    { text: "Settings", icon: <SettingsIcon />, path: "/superadminSettings" },
   ];
 
   const adminMenuItems = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "/" },
-    { text: "Manage Applicants", icon: <PeopleIcon />, path: "/applicants" },
+    { text: "Dashboard", icon: <DashboardIcon />, path: "/adminDashboard" },
+    { text: "Applicants Record", icon: <PeopleIcon />, path: "/applicants" },
     { text: "Manage Job Listings", icon: <WorkIcon />, path: "/jobs" },
-    {
-      text: "Manage Announcements",
-      icon: <AnnouncementIcon />,
-      path: "/announcements",
-    },
+    { text: "Manage Announcements", icon: <AnnouncementIcon />, path: "/announcements" },
+    { text: "Manage Employers", icon: <WorkIcon />, path: "/employers" },
+    { text: "Settings", icon: <SettingsIcon />, path: "/adminSettings" },
   ];
 
-  const menuItems =
-    userRole === "superadmin" ? superadminMenuItems : adminMenuItems;
+  const menuItems = userRole === "superadmin" ? superadminMenuItems : adminMenuItems;
 
   const drawer = (
     <div style={{ backgroundColor: "#C41E3A", height: "100%", color: "white" }}>
       <Toolbar />
       <Box sx={{ display: "flex", alignItems: "center", padding: "16px" }}>
-        <img src={logo} alt="JUANployment Logo" style={{ height: "40px", marginRight: "8px" }} />
+        <img
+          src={logo}
+          alt="JUANployment Logo"
+          style={{ height: "40px", marginRight: "8px" }}
+        />
         <Typography variant="h6" sx={{ color: "white", fontWeight: "bold" }}>
-          JUANployment
+          PESO San Juan
         </Typography>
       </Box>
       <List>
@@ -111,7 +113,7 @@ function Layout() {
   );
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <CssBaseline />
       <AppBar
         position="fixed"
@@ -120,7 +122,7 @@ function Layout() {
           ml: { sm: `${drawerWidth}px` },
           bgcolor: "white",
           color: "#C41E3A",
-          boxShadow: "none", // <-- Remove shadow/underline
+          boxShadow: "none",
         }}
       >
         <Toolbar sx={{ justifyContent: "space-between" }}>
@@ -135,7 +137,9 @@ function Layout() {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" noWrap component="div">
-              {userRole === "superadmin" ? "Superadmin" : "Admin"} Dashboard
+              {userRole === "superadmin"
+                ? "PESO San Juan Super Admin Access"
+                : "PESO San Juan Admin"}
             </Typography>
           </Box>
 
@@ -148,9 +152,11 @@ function Layout() {
               aria-haspopup="true"
               color="inherit"
             >
-              <Avatar sx={{ bgcolor: "#C41E3A", color: "white" }}>
-                {userName.charAt(0).toUpperCase()}
-              </Avatar>
+              <img
+                src={logo}
+                alt="Profile"
+                style={{ height: "40px", width: "40px", borderRadius: "50%" }}
+              />
             </IconButton>
             <Menu
               anchorEl={anchorEl}
@@ -170,10 +176,8 @@ function Layout() {
           </Box>
         </Toolbar>
       </AppBar>
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-      >
+
+      <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -207,6 +211,7 @@ function Layout() {
           {drawer}
         </Drawer>
       </Box>
+
       <Box
         component="main"
         sx={{
